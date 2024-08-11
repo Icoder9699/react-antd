@@ -1,30 +1,40 @@
 import "./App.css"
 import {MinusCircleOutlined, PlusOutlined} from '@ant-design/icons';
-import {Button, Form, Input, Space} from 'antd';
-import {useState} from "react";
+import {Button, Form, Input, InputNumber, Space, Typography} from 'antd';
+import {forwardRef, useState} from "react";
+
+const InputAge = forwardRef((props, ref) => (<InputNumber
+    ref={ref}
+    placeholder={props.placeholder}
+    onChange={props.onChange}
+/>))
 
 const App = () => {
     const [form] = Form.useForm();
     const [usersAverageAge, setUsersAverageAge] = useState(0)
+    const [users, setUsers] = useState([])
 
     const onFinish = (values) => {
         window.alert(JSON.stringify(values))
+        setUsers(form.getFieldsValue())
+        console.log(users)
         onCalculateUsersAge()
     };
 
-    const onChangeAge = () => {
-        console.info('some manipulations')
+    const onChangeAge = (e) => {
+        console.log(e)
+        console.info('some manipulations onChangeAge')
         onCalculateUsersAge()
     }
 
     const onRemoveUser = (cb, name) => {
-        console.info('some manipulations')
+        console.info('some manipulations onRemoveUser')
         cb(name)
         onCalculateUsersAge()
     }
 
     const onAddUser = async (cb) => {
-        console.info('some manipulations')
+        console.info('some manipulations onAddUser')
         try {
             await form.validateFields()
             cb()
@@ -52,97 +62,90 @@ const App = () => {
     }
 
     const validationRules = {
-        first: [
-            {
-                required: true,
-                name: "first",
-                message: "Please enter first name",
-            }
-        ],
-        last: [
-            {
-                required: true,
-                name: "last",
-                message: "Please enter last name",
-            }
-        ],
-        age: [
-            {
-                required: true,
-                name: "age",
-                message: "Please enter age",
-            }
-        ]
+        first: [{required: true, name: "first", message: "Please enter first name"}],
+        last: [{required: true, name: "last", message: "Please enter last name"}],
+        age: [() => ({
+            validator(_, value) {
+                if (!value) {
+                    return Promise.reject(new Error("Please enter age"))
+                }
+
+                if (value < 18 || value > 26) {
+                    return Promise.reject(new Error('Age should be from 18 to 26'));
+                }
+                console.log('worked')
+                return Promise.resolve();
+            },
+        })]
     }
 
-    return (
-        <>
-            <Form
-                form={form}
-                name="dynamic_form_nest_item"
-                onFinish={onFinish}
-                style={{maxWidth: 600}}
-                autoComplete="off"
-            >
-                <Form.List name="users" initialValue={Array.from({length: 1}, () => {
-                    return {
-                        firstName: "",
-                        lastName: "",
-                        age: 0
-                    }
-                })}>
-                    {(fields, {add, remove}) => (<>
-                        {fields.map(({key, name, ...restField}) => (<Space
-                            key={key}
-                            style={{
-                                display: 'flex', marginBottom: 8,
-                            }}
-                            align="baseline"
+    return (<>
+        <Form
+            form={form}
+            layout={'vertical'}
+            name="dynamic_form_nest_item"
+            onFinish={onFinish}
+            style={{maxWidth: 600}}
+            autoComplete="off"
+        >
+            <Form.List plac name="users" initialValue={Array.from({length: 1}, () => {
+                return {
+                    id: 1, first: "", last: "", age: 0
+                }
+            })}>
+                {(fields, {add, remove}) => (<>
+                    {fields.map(({key, name, ...restField}) => (<Space
+                        key={key}
+                        style={{
+                            display: 'flex', marginBottom: 8,
+                        }}
+                        align="center"
+                    >
+                        <Form.Item
+                            label={'First Name'}
+                            {...restField}
+                            name={[name, 'first']}
+                            rules={validationRules.first}
                         >
-
-                            <Form.Item
-                                {...restField}
-                                name={[name, 'first']}
-                                rules={validationRules.first}
-                            >
-                                <Input placeholder="First Name"/>
-                            </Form.Item>
-
-                            <Form.Item
-                                {...restField}
-                                name={[name, 'last']}
-                                rules={validationRules.last}
-                            >
-                                <Input placeholder="Last Name"/>
-                            </Form.Item>
-
-                            <Form.Item
-                                {...restField}
-                                name={[name, 'age']}
-                                rules={validationRules.age}
-                            >
-                                <Input placeholder="age" onChange={onChangeAge}/>
-                            </Form.Item>
-
-                            <MinusCircleOutlined onClick={() => onRemoveUser(remove, name)}/>
-                        </Space>))}
-                        <Form.Item>
-                            <Button type="dashed" onClick={() => onAddUser(add, name)} block icon={<PlusOutlined/>}>
-                                Add field
-                            </Button>
+                            <Input placeholder="Enter first Name" autoFocus/>
                         </Form.Item>
-                    </>)}
-                </Form.List>
-                <Form.Item>
-                    <Button type="primary" htmlType="submit">
-                        Submit
-                    </Button>
-                </Form.Item>
-            </Form>
 
-            {/*  average age  */}
-            <pre>{usersAverageAge || "users average age"}</pre>
-        </>
-    )
+                        <Form.Item
+                            label={'Last Name'}
+                            {...restField}
+                            name={[name, 'last']}
+                            rules={validationRules.last}
+                        >
+                            <Input placeholder="Enter last Name"/>
+                        </Form.Item>
+
+                        <Form.Item
+                            required
+                            label={'Age'}
+                            {...restField}
+                            name={[name, 'age']}
+                            rules={validationRules.age}
+                        >
+                            <InputAge onChange={onChangeAge} placeholder={'Enter age'}/>
+                        </Form.Item>
+
+                        <MinusCircleOutlined onClick={() => onRemoveUser(remove, name)}/>
+                    </Space>))}
+                    <Form.Item>
+                        <Button type="dashed" onClick={() => onAddUser(add, name)} block icon={<PlusOutlined/>}>
+                            Add field
+                        </Button>
+                    </Form.Item>
+                </>)}
+            </Form.List>
+            <Form.Item>
+                <Button type="primary" htmlType="submit">
+                    Submit
+                </Button>
+            </Form.Item>
+        </Form>
+
+        <Typography.Paragraph>{usersAverageAge || "users average age"}</Typography.Paragraph>
+    </>)
 }
 export default App;
