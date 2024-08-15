@@ -22,20 +22,24 @@ const App = () => {
     };
 
     const onChangeAge = () => {
-        // console.info('some manipulations onChangeAge')
-        // onCalculateUsersAge()
+        console.info('some manipulations onChangeAge')
+        onCalculateUsersAge()
     }
 
     const onRemoveUser = (cb, name) => {
         console.info('some manipulations onRemoveUser')
         cb(name)
         onCalculateUsersAge()
+
     }
 
-    const onAddUser = async (cb) => {
+    const onAddUser = async (cb, index) => {
         console.info('some manipulations onAddUser')
         try {
-            form.getFieldsValue().users.forEach(user => user.isUserAdded = true)
+            form.getFieldsValue().users[index].isUserAdded = true
+            console.log(form)
+            console.log(await form.getFieldsValue())
+
             await form.validateFields()
             cb()
         } catch (e) {
@@ -91,49 +95,63 @@ const App = () => {
                 {(fields, {add, remove}) => (
                     <>
                         {fields.map(({key, name, ...restField}) => (
-                            <Space
-                                key={key}
-                                style={{display: 'flex', marginBottom: 8}}
-                                align="center"
-                            >
 
-                                <Form.Item
-                                    label={'First Name'}
-                                    {...restField}
-                                    name={[name, 'first']}
-                                    rules={validationRules.first}
+                            <div key={key}>
+                                <Space
+                                    key={key}
+                                    style={{display: 'flex', marginBottom: 8}}
+                                    align="center"
                                 >
-                                    <Input placeholder="Enter first Name" autoFocus/>
-                                </Form.Item>
+                                    <Form.Item
+                                        label={'First Name'}
+                                        {...restField}
+                                        name={[name, 'first']}
+                                        rules={validationRules.first}
+                                    >
+                                        <Input placeholder="Enter first Name" autoFocus/>
+                                    </Form.Item>
 
-                                <Form.Item
-                                    label={'Last Name'}
-                                    {...restField}
-                                    name={[name, 'last']}
-                                    rules={validationRules.last}
-                                >
-                                    <Input placeholder="Enter last Name"/>
-                                </Form.Item>
+                                    <Form.Item
+                                        label={'Last Name'}
+                                        {...restField}
+                                        name={[name, 'last']}
+                                        rules={validationRules.last}
+                                    >
+                                        <Input placeholder="Enter last Name"/>
+                                    </Form.Item>
 
-                                <Form.Item
-                                    required
-                                    label={'Age'}
-                                    {...restField}
-                                    name={[name, 'age']}
-                                    rules={validationRules.age}
-                                >
-                                    <InputAge onChange={onChangeAge} placeholder={'Enter age'}/>
-                                </Form.Item>
+                                    <Form.Item
+                                        required
+                                        label={'Age'}
+                                        {...restField}
+                                        name={[name, 'age']}
+                                        rules={validationRules.age}
+                                    >
+                                        <InputAge onChange={onChangeAge} placeholder={'Enter age'}/>
+                                    </Form.Item>
 
-                                <MinusCircleOutlined onClick={() => onRemoveUser(remove, name)}/>
-                            </Space>
+
+                                    {
+                                        fields.length !== 1
+                                            ? <MinusCircleOutlined onClick={() => onRemoveUser(remove, name)}/>
+                                            : null
+                                    }
+
+                                </Space>
+
+                                {
+                                    fields.length !== 0 ?
+                                        <Form.Item>
+                                            <Button type="dashed" onClick={() => onAddUser(add, key)} block
+                                                    icon={<PlusOutlined/>}>
+                                                Add field
+                                            </Button>
+                                        </Form.Item>
+                                        : null
+                                }
+                            </div>
                         ))}
 
-                        <Form.Item>
-                            <Button type="dashed" onClick={() => onAddUser(add)} block icon={<PlusOutlined/>}>
-                                Add field
-                            </Button>
-                        </Form.Item>
                     </>
                 )}
             </Form.List>
