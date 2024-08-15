@@ -17,6 +17,7 @@ const App = () => {
             id: 1, first: "", last: "", age: 0, isUserAdded: false
         }
     })
+
     const onFinish = (values) => {
         window.alert(JSON.stringify(values))
     };
@@ -36,11 +37,8 @@ const App = () => {
     const onAddUser = async (cb, index) => {
         console.info('some manipulations onAddUser')
         try {
-            form.getFieldsValue().users[index].isUserAdded = true
-            console.log(form)
-            console.log(await form.getFieldsValue())
-
             await form.validateFields()
+            form.getFieldsValue().users[index].isUserAdded = true
             cb()
         } catch (e) {
             console.error(e)
@@ -50,20 +48,21 @@ const App = () => {
 
     const onCalculateUsersAge = async () => {
         try {
-            await form.validateFields()
+            await form.validateFields();
 
-            const users = form.getFieldsValue().users
+            const usersFromForm = form.getFieldsValue().users;
 
-            const averageAge = Math.round((users.reduce((acc, user) => {
-                return acc + Number(user.age)
-            }, 0) / users.length))
+            const averageAge = usersFromForm.length > 0
+                ? Math.round(usersFromForm.reduce((acc, user) => acc + Number(user.age), 0) / usersFromForm.length)
+                : null;
 
-            setUsersAverageAge(averageAge)
+            setUsersAverageAge(averageAge);
         } catch (e) {
-            console.error(e)
-            setUsersAverageAge(null)
+            console.error(e);
+            setUsersAverageAge(null);
         }
-    }
+    };
+
 
     const validationRules = {
         first: [{required: true, name: "first", message: "Please enter first name"}],
@@ -83,19 +82,18 @@ const App = () => {
         })]
     }
 
-    return (<>
-        <Form
-            form={form}
-            layout={'vertical'}
-            name="dynamic_form_nest_item"
-            onFinish={onFinish}
-            autoComplete="off"
-        >
-            <Form.List plac name="users" initialValue={usersInitialState}>
-                {(fields, {add, remove}) => (
-                    <>
+    return (
+        <>
+            <Form
+                form={form}
+                layout={'vertical'}
+                name="dynamic_form_nest_item"
+                onFinish={onFinish}
+                autoComplete="off"
+            >
+                <Form.List plac name="users" initialValue={usersInitialState}>
+                    {(fields, {add, remove}) => (<>
                         {fields.map(({key, name, ...restField}) => (
-
                             <div key={key}>
                                 <Space
                                     key={key}
@@ -131,38 +129,30 @@ const App = () => {
                                     </Form.Item>
 
 
-                                    {
-                                        fields.length !== 1
-                                            ? <MinusCircleOutlined onClick={() => onRemoveUser(remove, name)}/>
-                                            : null
-                                    }
+                                    {fields.length !== 1 ?
+                                        <MinusCircleOutlined onClick={() => onRemoveUser(remove, name)}/> : null}
 
                                 </Space>
 
-                                {
-                                    fields.length !== 0 ?
-                                        <Form.Item>
-                                            <Button type="dashed" onClick={() => onAddUser(add, key)} block
-                                                    icon={<PlusOutlined/>}>
-                                                Add field
-                                            </Button>
-                                        </Form.Item>
-                                        : null
-                                }
-                            </div>
-                        ))}
+                                {fields.length !== 0 ? <Form.Item>
+                                    <Button type="dashed" onClick={() => onAddUser(add, key)} block
+                                            icon={<PlusOutlined/>}>
+                                        Add field
+                                    </Button>
+                                </Form.Item> : null}
+                            </div>))}
 
-                    </>
-                )}
-            </Form.List>
-            <Form.Item>
-                <Button type="primary" htmlType="submit">
-                    Submit
-                </Button>
-            </Form.Item>
-        </Form>
+                    </>)}
+                </Form.List>
+                <Form.Item>
+                    <Button type="primary" htmlType="submit">
+                        Submit
+                    </Button>
+                </Form.Item>
+            </Form>
 
-        <Typography.Paragraph>{usersAverageAge || "users average age"}</Typography.Paragraph>
-    </>)
+            <Typography.Paragraph>{usersAverageAge || "users average age"}</Typography.Paragraph>
+        </>
+    )
 }
 export default App;
